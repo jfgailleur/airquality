@@ -43,7 +43,7 @@ co2= grove_co2_lib.CO2()
 # The sensitivity can be adjusted by the onboard potentiometer
 # Connect the Grove HCHO Sensor to analog port A0
 # SIG,NC,VCC,GND
-hcho_sensor = 0
+hcho_sensor = 1
 grovepi.pinMode(hcho_sensor,"INPUT")
 
 # Vcc of the grove interface is normally 5v
@@ -82,9 +82,9 @@ while True:
 
         
         # stream data points
-	streamer_aq.log("Air quality",air_quality_sensor_value)
-	streamer_aq.log("CO2",co2_ppm)
-	streamer_aq.log("HCHO",hcho_sensor_value)
+	streamer_aq.log("Air quality (1 to 900) lower better",air_quality_sensor_value)
+	streamer_aq.log("Carbon dioxide (CO2) PPM around 400",co2_ppm)
+	streamer_aq.log("Methanal(HCHO) PPM lower better",hcho_sensor_value)
 
         streamer_aq.flush()
 
