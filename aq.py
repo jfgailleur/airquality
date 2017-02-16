@@ -128,7 +128,9 @@ grovepi.pinMode(gas_sensor_MQ,"INPUT")
 
 # leds
 led_green = 6 # green on digital 6
+led_red = 5 # red on digital 5
 grovepi.pinMode(led_green,"OUTPUT")
+grovepi.pinMode(led_red,"OUTPUT")
 
 # open the streamer
 streamer_aq = Streamer(bucket_name=BUCKET_NAME_AQ, bucket_key=BUCKET_KEY_AQ, access_key=ACCESS_KEY)
@@ -170,26 +172,31 @@ while True:
 
         gas_MQ_density = gas_sensor_value_MQ
 
-        # get temperature and humidity
-        temp = 0
-        hum = 0
-        [temp,hum] = grovepi.dht(dht_sensor_port,dht_sensor_type)
-        #adjustement for this not quality sensor
-        temp = temp-1
 
         # reading dust sensor
         [new_val,lowpulseoccupancy] = grovepi.dustSensorRead()
         # calculate concentration: http://www.howmuchsnow.com/arduino/airquality/grovedust/
         dust_concentration = 0
         if (new_val):
-            ratio = lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)  # Integer percentage 0 to 100
-            dust_concentration = round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
+            ratio = (float) lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)  # Integer percentage 0 to 100
+            dust_concentration = (float) round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
+            ratio = (float) round(ratio, 1)
+
+        # get temperature and humidity
+        temp = 0
+        hum = 0
+        [temp,hum] = grovepi.dht(dht_sensor_port,dht_sensor_type)
+        #adjustement for this not quality sensor
+        temp = (float) round(temp-1,1)
+        hum= (float) round(hum)
+
 
         # stream data after initialization
         if (init_few_minutes >= INIT_MINUTES_WAIT):
             #green light
             grovepi.digitalWrite(led_green,1)
-            grovepi.analogWrite(led_green, 255)
+            grovepi.digitalWrite(led_red,0)
+#            grovepi.analogWrite(led_green, 255)
             
             # stream data points
 
@@ -235,16 +242,17 @@ while True:
         print("Combustible gases & smoke, lower better %d" %(gas_MQ_density))
 
         if new_val:
-            print("Dust particule ratio: %d" %(ratio))
-            print("Dust particule concentration: %d" %(dust_concentration))
+            print("Dust particule ratio: %f" %(ratio))
+            print("Dust particule concentration: %f" %(dust_concentration))
         else:
             print("Dust particule: no reading")
 
-        print("Air temperature (Celcius): %d" %(temp))
-        print("Air humidity(%%): %d" %(hum))
+        print("Air temperature (Celcius): %f" %(temp))
+        print("Air humidity(%%): %f" %(hum))
 
         # wait until next acquisition
         grovepi.digitalWrite(led_green,0)
+        grovepi.digitalWrite(led_red,1)
         time.sleep(60*MINUTES_BETWEEN_READS)
 #        grovepi.analogWrite(led_green, 255)
 
@@ -252,6 +260,7 @@ while True:
 
     except KeyboardInterrupt:	# Turn LED off before stopping
         grovepi.digitalWrite(led_green,0)
+        grovepi.digitalWrite(led_red,0)
         break
 
     except IOError:
