@@ -77,7 +77,7 @@ BUCKET_KEY_AQ = "aq170216"
 ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
 
 # Set the time between sensor reads
-MINUTES_BETWEEN_READS = 1
+SECONDS_BETWEEN_READS = 30
 INIT_MINUTES_WAIT = 2 # number of minutes to wait for sensors to warm up
 
 #------------ Temp and humidity sensor
@@ -178,18 +178,15 @@ while True:
         # calculate concentration: http://www.howmuchsnow.com/arduino/airquality/grovedust/
         dust_concentration = 0
         if (new_val):
-            ratio = (float) lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)  # Integer percentage 0 to 100
-            dust_concentration = (float) round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
-            ratio = (float) round(ratio, 1)
+            ratio = lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)  # Integer percentage 0 to 100
+            dust_concentration = round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
 
         # get temperature and humidity
         temp = 0
         hum = 0
         [temp,hum] = grovepi.dht(dht_sensor_port,dht_sensor_type)
         #adjustement for this not quality sensor
-        temp = (float) round(temp-1,1)
-        hum= (float) round(hum)
-
+        temp = temp-1
 
         # stream data after initialization
         if (init_few_minutes >= INIT_MINUTES_WAIT):
@@ -242,18 +239,18 @@ while True:
         print("Combustible gases & smoke, lower better %d" %(gas_MQ_density))
 
         if new_val:
-            print("Dust particule ratio: %f" %(ratio))
-            print("Dust particule concentration: %f" %(dust_concentration))
+            print("Dust particule ratio: " + str(ratio))
+            print("Dust particule concentration: %d" %(dust_concentration))
         else:
             print("Dust particule: no reading")
 
-        print("Air temperature (Celcius): %f" %(temp))
-        print("Air humidity(%%): %f" %(hum))
+        print("Air temperature (Celcius): " + str(temp))
+        print("Air humidity(%%): " +str (hum))
 
         # wait until next acquisition
         grovepi.digitalWrite(led_green,0)
         grovepi.digitalWrite(led_red,1)
-        time.sleep(60*MINUTES_BETWEEN_READS)
+        time.sleep(SECONDS_BETWEEN_READS)
 #        grovepi.analogWrite(led_green, 255)
 
     # endtry
