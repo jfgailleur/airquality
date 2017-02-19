@@ -11,7 +11,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2017 Gailleur
+Copyright (c) 2017 Emma Gailleur
 
 GrovePi for the Raspberry Pi: an open source platform for connecting Grove Sensors to the Raspberry Pi.
 Copyright (C) 2015  Dexter Industries
@@ -78,7 +78,7 @@ ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
 
 # Set the time between sensor reads
 SECONDS_BETWEEN_READS = 30
-INIT_MINUTES_WAIT = 2 # number of minutes to wait for sensors to warm up
+INIT_SECONDS_WAIT = 120 # number of seconds to wait for sensors to warm up
 
 #------------ Temp and humidity sensor
 dht_sensor_port = 4		# Connect the DHt sensor to digital port 4
@@ -110,7 +110,7 @@ grove_vcc = 5
 # for dust sensor ???
 atexit.register(grovepi.dust_sensor_dis)
 grovepi.dust_sensor_en()
-dustsensor_sampletime_ms = 2000
+dustsensor_sampletime_ms = SECONDS_BETWEEN_READS
 
 # gas sensor
 # There are 5 gas sensors
@@ -135,22 +135,21 @@ grovepi.pinMode(led_red,"OUTPUT")
 # open the streamer
 streamer_aq = Streamer(bucket_name=BUCKET_NAME_AQ, bucket_key=BUCKET_KEY_AQ, access_key=ACCESS_KEY)
 
-# First few minutes
-init_few_minutes = 0
+# First few seconds
+init_few_seconds = 0
 
 # infinite loop
 while True:
     
     try:
-#        grovepi.analogWrite(led_green, 255)
-#        time.sleep (1)
-#        grovepi.analogWrite(led_green, 0)
-        grovepi.digitalWrite(led_green, 1)
+        #green light on, red off
+        grovepi.digitalWrite(led_green,1)
+        grovepi.digitalWrite(led_red,0)
 
         # data acquisition
         now = datetime.datetime.utcnow()
         print ("---------------------")
-        print("Now: "+str(now))
+        print("Now (utc): "+str(now))
         print ("---------------------")
 
 
@@ -178,7 +177,7 @@ while True:
         # calculate concentration: http://www.howmuchsnow.com/arduino/airquality/grovedust/
         dust_concentration = 0
         if (new_val):
-            ratio = lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)  # Integer percentage 0 to 100
+            ratio = (lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)) *100 # Integer percentage 0 to 100
             dust_concentration = round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
 
         # get temperature and humidity
@@ -189,12 +188,7 @@ while True:
         temp = temp-1
 
         # stream data after initialization
-        if (init_few_minutes >= INIT_MINUTES_WAIT):
-            #green light
-            grovepi.digitalWrite(led_green,1)
-            grovepi.digitalWrite(led_red,0)
-#            grovepi.analogWrite(led_green, 255)
-            
+        if (init_few_seconds >= INIT_SECONDS_WAIT):            
             # stream data points
 
             # ----- Gases ----
@@ -218,7 +212,9 @@ while True:
         else:
             print ("---------------------")
             print ("Warming up sensors...")
-            init_few_minutes = init_few_minutes + MINUTES_BETWEEN_READS
+            init_few_seconds = init_few_seconds + SECONDS_BETWEEN_READS
+            print ("init_few_seconds="+str(init_few_seconds))
+            
 
         # always display on screen
         # Display on screen        
@@ -249,9 +245,12 @@ while True:
 
         # wait until next acquisition
         grovepi.digitalWrite(led_green,0)
-        grovepi.digitalWrite(led_red,1)
-        time.sleep(SECONDS_BETWEEN_READS)
-#        grovepi.analogWrite(led_green, 255)
+        for i in range (1, SECONDS_BETWEEN_READS):
+            grovepi.digitalWrite(led_red,1)
+            time.sleep(.5)
+            grovepi.digitalWrite(led_red,0)
+            time.sleep(.5)
+#            time.sleep(SECONDS_BETWEEN_READS)
 
     # endtry
 
