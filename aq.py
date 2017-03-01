@@ -71,7 +71,9 @@ DHT_SENSOR_PIN = 4
 
 # Initial State settings
 BUCKET_NAME_AQ = "Air Quality Monitoring"
-BUCKET_KEY_AQ = "aq170216"
+#BUCKET_KEY_AQ = "aq170216"
+#BUCKET_KEY_AQ = "aq170216"
+BUCKET_KEY_AQ = "kitchen-ids-170219"
 
 # intial state access key for jgailleur@hotmail.com
 ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
@@ -177,7 +179,7 @@ while True:
         # calculate concentration: http://www.howmuchsnow.com/arduino/airquality/grovedust/
         dust_concentration = 0
         if (new_val):
-            ratio = (lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)) *100 # Integer percentage 0 to 100
+            ratio = (lowpulseoccupancy /(dustsensor_sampletime_ms*10.0)) # Integer percentage 0 to 100
             dust_concentration = round(1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62, 0) # using spec sheet curve
 
         # get temperature and humidity
