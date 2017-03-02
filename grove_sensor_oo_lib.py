@@ -48,7 +48,7 @@ import datetime
 DEBUG = False
 
 
-MAX_PERCENT_ERROR = 1
+MAX_PERCENT_ERROR = 5
 
 # remove spike
 # max_percent_error: number between 1 and x%, e.g. 100% = 1
@@ -89,6 +89,11 @@ class DustSensor(GroveSensor):
         grovepi.dust_sensor_en()
 
         self.last_value =0
+        self.nb_consecutive_no_reading=0
+
+
+    def getNbConsecutiveNoReading(self):
+        return self.nb_consecutive_no_reading
 
     # read data from the sensor and return the concentration
     # return dust concentration as integer, 0 if no reading
@@ -108,18 +113,23 @@ class DustSensor(GroveSensor):
             # calculate concentration: http://www.howmuchsnow.com/arduino/airquality/grovedust/
             if (new_val):
                 ratio = lowpulseoccupancy /(self.dustsensor_sampletime_ms*1.0) # Integer percentage 0 to 100
-                dust_concentration = (1.1*pow(ratio,3))-(3.8*pow(ratio,2))+(520*ratio)+0.62 # using spec sheet curve
+                dust_concentration = round((1.1*pow(ratio,3))-(3.8*pow(ratio,2))+(520*ratio)+0.62,0) # using spec sheet curve
                 if (DEBUG):
                     print ("dust_concentration read %d" %(dust_concentration))
                     print ("self.last_value %d" %(self.last_value))
           
                 dust_concentration = removeSpike(self.last_value, dust_concentration, MAX_PERCENT_ERROR)
+                if (dust_concentration > 1000000):
+                    dust_concentration =0
                 self.last_value = dust_concentration
 
                 if (DEBUG):
                     print ("dust_concentration computed %d" %(dust_concentration))
+                self.nb_consecutive_no_reading=0
+
             else:
                 dust_concentration = self.last_value
+                self.nb_consecutive_no_reading=self.nb_consecutive_no_reading+1
  
             if (DEBUG):
                 print ("dust_concentration  %d" %(dust_concentration))
@@ -129,6 +139,7 @@ class DustSensor(GroveSensor):
             return dust_concentration
 
         except:
+            self.nb_consecutive_no_reading=self.nb_consecutive_no_reading+1
             return dust_concentration
     
 #endofclass DustSensor

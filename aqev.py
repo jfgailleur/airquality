@@ -111,7 +111,11 @@ while True:
             print("Dust particule concentration: %d" %(dust_concentration))
         else:
             print("Dust particule: no reading")
+            
+        if dust_sensor.getNbConsecutiveNoReading() > 10:
+            print ("WARNING: no reading dustsensor %d" %(dust_sensor.getNbConsecutiveNoReading()))
 
+        # reading and dis[play of gases density
         gas_MQ2_density = gas_sensor_MQ2.readGasDensity()
         gas_MQ9_density = gas_sensor_MQ9.readGasDensity()
 
