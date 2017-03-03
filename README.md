@@ -87,7 +87,3 @@ Detectable range of concentration 0 ~ 8000 pcs/0.01cf
 * on socket AC/DC adaptor 5V 2A
 * portable: Lipo battery 5v 10A, plus lipo usb charger plus solar panel 5V, 2W or 3W
 
-# TO DO
-* Convert to Python 3.x
-
-
