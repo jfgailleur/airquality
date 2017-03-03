@@ -47,8 +47,8 @@ import datetime
 
 DEBUG = False
 
-
-MAX_PERCENT_ERROR = 5
+# 50% = .5, 100% = 1, 200% =2 ...
+MAX_PERCENT_ERROR = 2
 
 # remove spike
 # max_percent_error: number between 1 and x%, e.g. 100% = 1
