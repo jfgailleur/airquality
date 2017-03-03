@@ -78,12 +78,13 @@ gas_sensor_MQ2 = grove_sensor_oo_lib.GasSensor(2) # MQ2 on Analog port 2
 
 
 # leds
-led_red = 6 # red on digital 5
+led_red = 5 # led on digital x
 grovepi.pinMode(led_red,"OUTPUT")
 
 # INIT TO SEND TO INTERNET
 # open the streamer
-streamer_aq = Streamer(bucket_name=BUCKET_NAME_AQ, bucket_key=BUCKET_KEY_AQ, access_key=ACCESS_KEY)
+if (stream_online):
+    streamer_aq = Streamer(bucket_name=BUCKET_NAME_AQ, bucket_key=BUCKET_KEY_AQ, access_key=ACCESS_KEY)
 
 
 # infinite loop
@@ -126,15 +127,16 @@ while True:
         #------------------------------------------------------
         # stream data points
         # ----- Gases ----
-        streamer_aq.log("Air quality (1 to 900), lower better",air_quality_sensor_value)
-        streamer_aq.log("Combustibles gas & smoke (MQ2), lower better",gas_MQ2_density)
-        streamer_aq.log("Combustibles gas & smoke (MQ9), lower better",gas_MQ9_density)
-        # ---------- PARTICULE ------------
-        # stream dust particule information
-        if (dust_concentration>0):
-            streamer_aq.log("Dust particule concentration (pcs/0.01cf), lower better", dust_concentration)
+        if (stream_online):
+            streamer_aq.log("Air quality (1 to 900), lower better",air_quality_sensor_value)
+            streamer_aq.log("Combustibles gas & smoke (MQ2), lower better",gas_MQ2_density)
+            streamer_aq.log("Combustibles gas & smoke (MQ9), lower better",gas_MQ9_density)
+            # ---------- PARTICULE ------------
+            # stream dust particule information
+            if (dust_concentration>0):
+                streamer_aq.log("Dust particule concentration (pcs/0.01cf), lower better", dust_concentration)
 
-        streamer_aq.flush()
+            streamer_aq.flush()
             
 
         #------------------------------------------------------
