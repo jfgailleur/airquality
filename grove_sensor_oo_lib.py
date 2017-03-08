@@ -22,7 +22,7 @@ DEBUG = False
 
 #-------------------
 # 50% = .5, 100% = 1, 200% =2 ...
-MAX_PERCENT_ERROR = 2
+MAX_PERCENT_ERROR = 3
 
 #-------------------
 # remove spike
@@ -41,10 +41,15 @@ def removeSpike(previous_value, new_value, max_percent_error):
     else:
          return new_value
 
+#-------------------
+class GroveSensor:
+#     port = -1
+#     type =
+    pass
 
 #-------------------
 #---------- CO2 SENSOR -----------------
-class CO2SensorSerial:
+class CO2SensorSerial(GroveSensor):
 
     # init
     def __init__(self):
@@ -69,11 +74,6 @@ class CO2SensorSerial:
         except:
             return (co2_ppm)
 
-#-------------------
-class GroveSensor:
-#     port = -1
-#     type =
-    pass
 
 
 #-------------------          
@@ -180,11 +180,11 @@ class AirQualitySensor(GroveSensor):
     def getAirQualityStringValue(self, air_quality_sensor_value): 
         air_quality_type = "unknown"
         if air_quality_sensor_value > 700:
-            air_quality_type = "High pollution"
+            air_quality_type = "danger" #"High pollution"
         elif air_quality_sensor_value > 300:
-            air_quality_type = "Low pollution"
+            air_quality_type = "pollution" #"low pollution"
         elif air_quality_sensor_value > 0:
-            air_quality_type = "Fresh air"
+            air_quality_type = "air frais" #"Fresh air"
         return (air_quality_type)
 
 

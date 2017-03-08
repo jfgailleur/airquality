@@ -194,7 +194,7 @@ while True:
             # stream data points
 
             # ----- Gases ----
-            streamer_aq.log("Air quality (1 to 900), lower better",air_quality_sensor_value)
+            streamer_aq.log("Air quality gas (1 to 900), lower better",air_quality_sensor_value)
             streamer_aq.log("Carbon dioxide (CO2) PPM around 400",co2_ppm)
             streamer_aq.log("Methanal(HCHO) PPM, lower better",hcho_sensor_value)
             streamer_aq.log("Combustibles gas & smoke, lower better",gas_MQ_density)
