@@ -1,39 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Air quality monitoring
-# Science project based on RaspberryPi, GrovePi and Grove sensors and actuators
-#
-#
-
-
-'''
-## License
-
-The MIT License (MIT)
-
-Copyright (c) 2017 Emma Gailleur & Victoria Lapointe
-
-GrovePi for the Raspberry Pi: an open source platform for connecting Grove Sensors to the Raspberry Pi.
-Copyright (C) 2015  Dexter Industries
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-'''
 
 
 # LIBRARIES WE ARE USING
@@ -45,11 +13,18 @@ import atexit
 import datetime
 
 
+# Connect the CO2 sensor to the RPISER port on the GrovePi
+import grove_co2_lib
+
+#-------------------
+# DEBUG FLAG
 DEBUG = False
 
+#-------------------
 # 50% = .5, 100% = 1, 200% =2 ...
 MAX_PERCENT_ERROR = 2
 
+#-------------------
 # remove spike
 # max_percent_error: number between 1 and x%, e.g. 100% = 1
 ## return new_value if value between previous_value+(previous_value*max_percent_error)
@@ -66,13 +41,42 @@ def removeSpike(previous_value, new_value, max_percent_error):
     else:
          return new_value
 
+
+#-------------------
+#---------- CO2 SENSOR -----------------
+class CO2SensorSerial:
+
+    # init
+    def __init__(self):
+        # connect to the CO2 sensor
+        self.co2= grove_co2_lib.CO2()
+        self.last_value =0
+
+    def readConcentration(self):
+
+        co2_ppm = self.last_value
+
+        try:
+            # get CO2 concentration
+            [co2_ppm, co2_temp]= self.co2.read()
+            if (DEBUG):
+                print("CO2 Conc: %d ppm\t Temp: %d C" %(co2_ppm,co2_temp))
+            #remove spike
+            co2_ppm = removeSpike(self.last_value, co2_ppm, MAX_PERCENT_ERROR)
+            self.last_value = co2_ppm
+
+            return (co2_ppm)
+        except:
+            return (co2_ppm)
+
+#-------------------
 class GroveSensor:
 #     port = -1
 #     type =
     pass
 
 
-          
+#-------------------          
 class DustSensor(GroveSensor):
 #    lowpulseoccupancy=-1
 #    new_val=-1
