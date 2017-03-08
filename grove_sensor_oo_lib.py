@@ -64,6 +64,11 @@ class CO2SensorSerial(GroveSensor):
         try:
             # get CO2 concentration
             [co2_ppm, co2_temp]= self.co2.read()
+            # read again if number too high
+            if (co2_ppm > 20,000):
+                time.sleep(.5)
+                [co2_ppm, co2_temp]= self.co2.read()
+
             if (DEBUG):
                 print("CO2 Conc: %d ppm\t Temp: %d C" %(co2_ppm,co2_temp))
             #remove spike

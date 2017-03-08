@@ -158,9 +158,9 @@ class AirQualityApp(Frame):
     def createGUI(self):
         #main window
         #self.main_window = Tk()
-        self.myFont = tkFont.Font(family = 'Verdana', size = 18, weight = 'bold')
+        self.myFont = tkFont.Font(family = 'Verdana', size = 16, weight = 'bold')
         self.mySmallFont = tkFont.Font(family = 'Verdana', size = 12, weight = 'bold')
-        self.myLargeFont = tkFont.Font(family = 'Verdana', size = 24, weight = 'bold')
+        self.myLargeFont = tkFont.Font(family = 'Verdana', size = 18, weight = 'bold')
 
         self.master.title("Système de mesure de la qualité de l'air")       #----
         #self.master.title("Program window")
@@ -198,8 +198,8 @@ class AirQualityApp(Frame):
         Label(self, text="(c) Emma & Victoria ", font = self.mySmallFont).grid(row=row_value, column=0, sticky=W)
         row_value = row_value +1
         Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
-        row_value = row_value +1
-        Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
+#        row_value = row_value +1
+#        Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
 
         # Sensors 1: air quality
         row_value = row_value +1
@@ -235,12 +235,12 @@ class AirQualityApp(Frame):
         Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
         row_value = row_value +1
         Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
-        row_value = row_value +1
-        Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
-        row_value = row_value +1
-        Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
-        row_value = row_value +1
-        Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
+ #       row_value = row_value +1
+ #       Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
+ #       row_value = row_value +1
+ #       Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
+ #       row_value = row_value +1
+ #       Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
 
         # buttons
         row_value = row_value +1
@@ -371,6 +371,10 @@ class AirQualityApp(Frame):
                 # main loop for TKinter
                 self.master.update_idletasks()
                 self.master.update()
+
+                # free some processor time
+                time.sleep(.5)
+
 
             # endtry
             except KeyboardInterrupt:	# Turn LED off before stopping
