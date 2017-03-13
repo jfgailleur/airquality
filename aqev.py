@@ -93,12 +93,51 @@ class AirQualityApp(Frame):
         Frame.__init__(self)
         self.createGUI()
 
-        
+
         
     # -----------------------------------
-    # ALL SENSORS DATA READING
+    # ALL SENSORS DATA READING & Streaming
     # -----------------------------------
-    def readSensors(self):
+    def readSubSetSensorsAndUpdateGUI(self):
+        # Harmful gas
+        air_quality_sensor_value = self.air_quality_sensor.readAirQuality()
+        air_type_string = self.air_quality_sensor.getAirQualityStringValue(air_quality_sensor_value)
+        airquality_text = str(air_quality_sensor_value)+" ("+ str(air_type_string) +")"
+        self.airQualityLabelValue.set(airquality_text)
+        if (DEBUG):
+            print("Harmful gas: "+airquality_text)
+
+        #--------------------------------------
+        # reading and dis[play of gases density
+        gas_MQ2_density = self.gas_sensor_MQ2.readGasDensity()
+        self.gasMQ2Value.set(str(gas_MQ2_density))
+        if (DEBUG):
+            print("Combustible gases (H2, LPG, CH4, CO, Alcohol, Propane & smoke (MQ2), 200-10000, lower better %d" %(gas_MQ2_density))
+
+        #--------------------------------------
+        # reading CO2
+        co2_concentration = self.co2_sensor.readConcentration()
+        self.co2Value.set(str(co2_concentration))
+        if (DEBUG):
+            print("Carbon dioxide (CO2) PPM around 400: %d ppm" %(co2_concentration))
+
+
+    # -----------------------------------
+    # RESET VARIABLES
+    # -----------------------------------
+    def reset(self):
+        self.last_reading_time_seconds = 0
+        # self.air_quality_sensor
+        self.co2_sensor.reset()
+        # self.gasMQ2Value
+        # self.dust_sensor
+    
+
+        
+    # -----------------------------------
+    # ALL SENSORS DATA READING & Streaming
+    # -----------------------------------
+    def readSensorsAndUpdateGUIAndStream(self):
         # Harmful gas
         air_quality_sensor_value = self.air_quality_sensor.readAirQuality()
         air_type_string = self.air_quality_sensor.getAirQualityStringValue(air_quality_sensor_value)
@@ -189,13 +228,13 @@ class AirQualityApp(Frame):
         self.informationLabelValue3.set(" ")
 
         row_value = row_value +1
-        Label(self, text="Date & heure Dernière mesure", font = self.myFont).grid(row=row_value, column=0, sticky=W)
+        Label(self, text="Date & heure de la dernière mesure:", font = self.myFont).grid(row=row_value, column=0, sticky=W)
         self.informationLabelValue2=StringVar()
         Label(self, textvariable=self.informationLabelValue2, font = self.myFont).grid(row=row_value, column=1, sticky=W)
         self.informationLabelValue2.set(" aucune")
 
         row_value = row_value +1
-        Label(self, text="(c) Emma & Victoria ", font = self.mySmallFont).grid(row=row_value, column=0, sticky=W)
+        Label(self, text="(c) Emma Gailleur & Victoria Lapointe", font = self.mySmallFont).grid(row=row_value, column=0, sticky=W)
         row_value = row_value +1
         Label(self, text=" ", font = self.myFont).grid(row=row_value, column=0, sticky=W)
 #        row_value = row_value +1
@@ -293,12 +332,14 @@ class AirQualityApp(Frame):
             #self.informationLabelValue2.set(" ")
             self.informationLabelValue3.set(" ")
 
-
         else:
+            # reset
+            self.reset()
+
             # start the capture
             self.sensorMonitoring = True
             self.startButtonLabel.set("Arrêter")
-            self.informationLabelValue1.set("Mesure en cours...")
+            self.informationLabelValue1.set("Mesure de la Qualité de l'air")
             
 
     # -----------------------------------
@@ -347,13 +388,17 @@ class AirQualityApp(Frame):
                     print("Now (utc): "+str(now))
                     print ("---------------------")
 
-                    # --- read the sensors, send to Internet and print in the terminal ---
-                    self.readSensors()
+                    # --- read the sensors, upate the GUI send to Internet and print in the terminal ---
+                    self.readSensorsAndUpdateGUIAndStream()
+                    
                     self.informationLabelValue2.set(str(now))
                     last_reading_time_seconds = now_seconds
 
                     # endif data reading
                 elif (self.sensorMonitoring):
+                    # Update all sensor values beside dust
+                    self.readSubSetSensorsAndUpdateGUI()
+
                     # next capture
                     self.informationLabelValue3.set("Prochaine mesure dans %d s" %(round(last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS - now_seconds)))    
                     

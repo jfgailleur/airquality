@@ -57,6 +57,12 @@ class CO2SensorSerial(GroveSensor):
         self.co2= grove_co2_lib.CO2()
         self.last_value =0
 
+
+    def reset(self):
+        self.last_value =0
+        
+
+
     def readConcentration(self):
 
         co2_ppm = self.last_value
@@ -67,7 +73,12 @@ class CO2SensorSerial(GroveSensor):
             # read again if number too high
             if (co2_ppm > 20,000):
                 time.sleep(.5)
+                self.co2= grove_co2_lib.CO2()
                 [co2_ppm, co2_temp]= self.co2.read()
+                # if still too high
+#                if (co2_ppm > 20,000):
+#                   co2_ppm = 0 
+            
 
             if (DEBUG):
                 print("CO2 Conc: %d ppm\t Temp: %d C" %(co2_ppm,co2_temp))
@@ -128,7 +139,7 @@ class DustSensor(GroveSensor):
                     print ("self.last_value %d" %(self.last_value))
           
                 dust_concentration = removeSpike(self.last_value, dust_concentration, MAX_PERCENT_ERROR)
-                if (dust_concentration > 1000000):
+                if (dust_concentration > 10000):
                     dust_concentration =0
                 self.last_value = dust_concentration
 
