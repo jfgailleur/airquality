@@ -10,7 +10,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2017 Emma Gailleur & Victoria Lapointe
+Copyright (c) 2017 Emma Gailleur
 
 GrovePi for the Raspberry Pi: an open source platform for connecting Grove Sensors to the Raspberry Pi.
 Copyright (C) 2015  Dexter Industries
