@@ -4,9 +4,7 @@
 # Air quality monitoring
 # Science project based on RaspberryPi, GrovePi and Grove sensors and actuators
 #
-#
-## License: The MIT License (MIT)
-#
+## License: Open Source The MIT License (MIT)
 
 # LIBRARIES WE ARE USING
 import os
@@ -16,10 +14,7 @@ import atexit
 import datetime
 
 # graphical user interface libraries
-#import Tkinter
-#from tkinter import ttk
 from tkinter import *
-#from tkinter.ttk import *
 import tkFont
 
 #dexter industries open source libraries
@@ -29,33 +24,18 @@ import grove_co2_lib
 # project libraries
 import grove_sensor_oo_lib
 
-
-#def ledON():
-#    print("LED button pressed")
-
-
-# leds
-#led_red = 5 # led on digital x
-#grovepi.pinMode(led_red,"OUTPUT")
-
-
-#- STOCKAGE SUR INTERNET
+#- INTERNET DATA STORAGE AND ANALYSIS
 # Initial State settings
 BUCKET_NAME_AQ = "Air Quality Monitoring"
 BUCKET_KEY_AQ = "20070308-EV"
 # intial state access key for jgailleur@hotmail.com
 ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
 
+stream_online = True # stream online to Initial State or not
 
-# global variables to the application
-    
+
+# DEBUG MODE
 DEBUG = False
-
-
-# stream online to Initial State or not
-stream_online = True
-
-
 
 #################################
 # AIR QUALITY APPLICATION CLASS
@@ -63,26 +43,20 @@ stream_online = True
 class AirQualityApp(Frame):
 
     # global constants
-
-    
-    # Set the time between sensor reads
-    SECONDS_BETWEEN_READS = 30
-
-
+    SECONDS_BETWEEN_READS = 30 # Set the time between sensor reads for Dust sensor
 
     # -----------------------------------
     def __init__(self):
 
         # monitoring stopped
-        self.sensorMonitoring = False
-
+        self.sensorMonitoring = True
 
         # SENSORS OBJECT CREATION AND INITIALIZATION
         self.air_quality_sensor = grove_sensor_oo_lib.AirQualitySensor(0) # air quality on analog port 0
         self.gas_sensor_MQ2 = grove_sensor_oo_lib.GasSensor(2) # MQ2 on Analog port 2
-        self.co2_sensor = grove_sensor_oo_lib.CO2SensorSerial()
-        self.dust_sensor = grove_sensor_oo_lib.DustSensor(2, AirQualityApp.SECONDS_BETWEEN_READS)
-        # Temperatures and humidity to add
+        self.co2_sensor = grove_sensor_oo_lib.CO2SensorSerial() # CO2 Sensor on Serial port
+        self.dust_sensor = grove_sensor_oo_lib.DustSensor(2, AirQualityApp.SECONDS_BETWEEN_READS) #Dust sensor D2
+        self.temp_hum_sensor = grove_sensor_oo_lib.TempAndHumSensor(4) # Temperatures and humidity on port D4
 
 
         # DATA STREAM CREATION FOR SENDING DATA TO INITIAL STATE
@@ -108,7 +82,7 @@ class AirQualityApp(Frame):
             print("Harmful gas: "+airquality_text)
 
         #--------------------------------------
-        # reading and dis[play of gases density
+        # reading and display of gases density
         gas_MQ2_density = self.gas_sensor_MQ2.readGasDensity()
         self.gasMQ2Value.set(str(gas_MQ2_density))
         if (DEBUG):
@@ -120,6 +94,7 @@ class AirQualityApp(Frame):
         self.co2Value.set(str(co2_concentration))
         if (DEBUG):
             print("Carbon dioxide (CO2) PPM around 400: %d ppm" %(co2_concentration))
+
 
 
     # -----------------------------------
@@ -173,21 +148,27 @@ class AirQualityApp(Frame):
             # reinit
             self.dust_sensor = grove_sensor_oo_lib.DustSensor(2, AirQualityApp.SECONDS_BETWEEN_READS)
 
-
+        
 
         #------------------------------------------------------
         # stream data points
         # ----- Gases ----
         if (stream_online):
+            # -------- Gaz and CO2
             self.streamer_aq.log("Harmfull Gas (1-900)",air_quality_sensor_value)
             self.streamer_aq.log("Combustibles Gas (200-10,000)",gas_MQ2_density)
             self.streamer_aq.log("CO2 (0-20,000)", co2_concentration)
+
+            # -------- temperature and humidity
+            self.streamer_aq.log("Air temperature (Celcius)", temp)
+            self.streamer_aq.log("Air humidity (%)", hum)
 
             # ---------- PARTICULE ------------
             # stream dust particule information
             if (dust_concentration>0):
                 self.streamer_aq.log("Dust particule (0-8,000)", dust_concentration)
 
+            # send all data
             self.streamer_aq.flush()
 
 
@@ -343,44 +324,36 @@ class AirQualityApp(Frame):
             
 
     # -----------------------------------
-    # CALLBACK
+    # CALLBACK FOR QUIT BUTTON
     # -----------------------------------
-
     def quitCallback(self):
         self.infiniteLoop=False
         self.master.quit()
-
-
 
     # -----------------------------------
     # MAIN LOOP
     # -----------------------------------
     def mainLoop(self):
 
-
         # Init last time the reading was done
         last_reading_time_seconds = 0 #time.mktime(datetime.datetime.utcnow().timetuple())
 
-        self.infiniteLoop=True
-
         # infinite loop
+        self.infiniteLoop=True
         while (self.infiniteLoop):
     
             try:
-                # LED OFF
-                # grovepi.digitalWrite(led_red,0)
-
                 #------------------------------------------------------
-                # MEASUREMENT
-                # data acquisition
                 now = datetime.datetime.utcnow()
-
                 now_seconds = time.mktime(now.timetuple())
+
                 if (DEBUG):
                     print("now_seconds:"+str(now_seconds))
                     print("last_reading_time_seconds:"+str(last_reading_time_seconds))
                     print("SECONDS_BETWEEN_READS:"+str(AirQualityApp.SECONDS_BETWEEN_READS))
                                 
+                #------------------------------------------------------
+                # MEASUREMENT
                 # do we read data this loop?
                 if (self.sensorMonitoring)  and (now_seconds >= last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS):
 
@@ -395,24 +368,14 @@ class AirQualityApp(Frame):
                     last_reading_time_seconds = now_seconds
 
                     # endif data reading
+                #------------------------------------------------------
+                # Update all sensor values beside dust
                 elif (self.sensorMonitoring):
-                    # Update all sensor values beside dust
                     self.readSubSetSensorsAndUpdateGUI()
 
                     # next capture
                     self.informationLabelValue3.set("Prochaine mesure dans %d s" %(round(last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS - now_seconds)))    
                     
-                '''
-                #------------------------------------------------------
-                # wait until next acquisition
-                for i in range (1, SECONDS_BETWEEN_READS):
-                    grovepi.digitalWrite(led_red,1)
-                    time.sleep(.5)
-                    grovepi.digitalWrite(led_red,0)
-                    time.sleep(.5)
-                '''
-
-
                 # main loop for TKinter
                 self.master.update_idletasks()
                 self.master.update()
@@ -420,16 +383,15 @@ class AirQualityApp(Frame):
                 # free some processor time
                 time.sleep(.5)
 
-
             # endtry
-            except KeyboardInterrupt:	# Turn LED off before stopping
-                grovepi.digitalWrite(led_red,0)
+
+            # QUIT IF CTRL C ON TERMINAL
+            except KeyboardInterrupt:	
                 self.master.quit()
                 break
 
             except IOError:
                 print ("Error")
-
 
         # end while
 
@@ -438,9 +400,6 @@ class AirQualityApp(Frame):
 # MAIN PROGRAM
 #----------------------------------
 if __name__ == '__main__':
-
-#    main_window = Tk()
-#    airQualityApp = AirQualityApp(main_window)
     AirQualityApp().mainLoop() # custom mainloop for data acquisition
 
 

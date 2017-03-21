@@ -12,7 +12,6 @@ from ISStreamer.Streamer import Streamer
 import atexit
 import datetime
 
-
 # Connect the CO2 sensor to the RPISER port on the GrovePi
 import grove_co2_lib
 
@@ -46,6 +45,41 @@ class GroveSensor:
 #     port = -1
 #     type =
     pass
+
+
+#-------------------
+#---------- TEMPERATURE and HUMIDITY SENSOR -----------------
+class TempAndHumSensor(GroveSensor):
+
+    # --------- User Settings ---------
+    # The DHT_SENSOR_TYPE below may need to be changed depending on which DHT sensor you have:
+    #  0 - DHT11 - blue one - comes with the GrovePi+ Starter Kit
+    #  1 - DHT22 - white one, aka DHT Pro or AM2302
+    #  2 - DHT21 - black one, aka AM2301
+    self.DHT_SENSOR_TYPE = 1
+    # Connect the DHT sensor to one of the digital pins (i.e. 2, 3, 4, 7, or 8)
+    self.dht_sensor_port = 0
+
+    # init
+    def __init__(self, port):
+        # port
+        self.dht_sensor_port = port
+        self.last_value =0
+
+
+    def readTempAndHum(self):
+
+        # get temperature and humidity
+        self.temp = 0
+        self.hum = 0
+        [self.temp,self.hum] = grovepi.dht(dht_sensor_port, self.DHT_SENSOR_TYPE)
+
+    def getTemp(self):
+        return self.temp
+
+    def getHum(self):
+        return self.hum
+
 
 #-------------------
 #---------- CO2 SENSOR -----------------
