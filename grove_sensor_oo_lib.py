@@ -56,28 +56,25 @@ class TempAndHumSensor(GroveSensor):
     #  0 - DHT11 - blue one - comes with the GrovePi+ Starter Kit
     #  1 - DHT22 - white one, aka DHT Pro or AM2302
     #  2 - DHT21 - black one, aka AM2301
-    self.DHT_SENSOR_TYPE = 1
     # Connect the DHT sensor to one of the digital pins (i.e. 2, 3, 4, 7, or 8)
-    self.dht_sensor_port = 0
 
     # init
     def __init__(self, port):
-        # port
-        self.dht_sensor_port = port
-        self.last_value =0
-
+        self.dht_sensor_port = port # port
+        self.last_value =0 # last value set to 0
+        self.DHT_SENSOR_TYPE = 1 # DHT PRO (white one)
 
     def readTempAndHum(self):
 
         # get temperature and humidity
         self.temp = 0
         self.hum = 0
-        [self.temp,self.hum] = grovepi.dht(dht_sensor_port, self.DHT_SENSOR_TYPE)
+        [self.temp,self.hum] = grovepi.dht(self.dht_sensor_port, self.DHT_SENSOR_TYPE)
 
-    def getTemp(self):
+    def getLatestReadTemp(self):
         return self.temp
 
-    def getHum(self):
+    def getLatestReadHum(self):
         return self.hum
 
 
@@ -91,11 +88,9 @@ class CO2SensorSerial(GroveSensor):
         self.co2= grove_co2_lib.CO2()
         self.last_value =0
 
-
     def reset(self):
         self.last_value =0
         
-
 
     def readConcentration(self):
 
@@ -105,12 +100,12 @@ class CO2SensorSerial(GroveSensor):
             # get CO2 concentration
             [co2_ppm, co2_temp]= self.co2.read()
             # read again if number too high
-            if (co2_ppm > 20,000):
+            if (co2_ppm > 20000):
                 time.sleep(.5)
                 self.co2= grove_co2_lib.CO2()
                 [co2_ppm, co2_temp]= self.co2.read()
                 # if still too high
-#                if (co2_ppm > 20,000):
+#                if (co2_ppm > 20000):
 #                   co2_ppm = 0 
             
 
