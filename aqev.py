@@ -363,6 +363,10 @@ class AirQualityApp(Frame):
     # -----------------------------------
     def mainLoop(self):
         
+        now = datetime.datetime.utcnow()
+        now_seconds = time.mktime(now.timetuple())
+        last_reading_time_seconds=now_seconds
+
         # main inifite loop until quit        
         while (self.infiniteLoop):
             try:
@@ -370,7 +374,6 @@ class AirQualityApp(Frame):
                 # DATE HOURS TIME
                 now = datetime.datetime.utcnow()
                 now_seconds = time.mktime(now.timetuple())
-                last_reading_time_seconds=now_seconds
                 
                 # update time and date
                 self.displayDateaAdnTime(now)
