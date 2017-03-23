@@ -138,7 +138,8 @@ class AirQualityApp(Frame):
 
     def readDustSensors(self):
 
-        self.dust_concentration = int(round(self.dust_sensor.readConcentration()))
+        self.dust_concentration = self.dust_sensor.readConcentration()
+#        self.dust_concentration = int(round(self.dust_sensor.readConcentration()))
 
         # renit if reading issues for 10 consecutive time            
         if self.dust_sensor.getNbConsecutiveNoReading() > 10:
@@ -167,6 +168,8 @@ class AirQualityApp(Frame):
         self.readDustSensors()
         self.updateGUIDustSensors()
 
+        self.streamOnlineData()
+
     # -----------------------------------
     # ONLINE STREAMING TO IOT PLATFORM
     # -----------------------------------
@@ -181,14 +184,14 @@ class AirQualityApp(Frame):
             self.streamer_aq.log("Combustibles Gases (200-10,000)",self.gas_MQ2_density)
             self.streamer_aq.log("CO2 (0-20,000)", self.co2_concentration)
 
-            # -------- temperature and humidity
-            self.streamer_aq.log("Air temperature (Celcius)", self.inside_temperature)
-            self.streamer_aq.log("Air humidity (%)", self.inside_humidity)
-
             # ---------- PARTICULE ------------
             # stream dust particule information
             if (self.dust_concentration>0):
                 self.streamer_aq.log("Dust particule (0-8,000)", self.dust_concentration)
+
+           # -------- temperature and humidity
+            self.streamer_aq.log("Air temperature (Celcius)", self.inside_temperature)
+            self.streamer_aq.log("Air humidity (%)", self.inside_humidity)
 
             # send all data
             self.streamer_aq.flush()
@@ -359,9 +362,7 @@ class AirQualityApp(Frame):
     # MAIN LOOP
     # -----------------------------------
     def mainLoop(self):
-        # Init last time the reading was done
-        last_reading_time_seconds = 0 
-
+        
         # main inifite loop until quit        
         while (self.infiniteLoop):
             try:
@@ -369,7 +370,8 @@ class AirQualityApp(Frame):
                 # DATE HOURS TIME
                 now = datetime.datetime.utcnow()
                 now_seconds = time.mktime(now.timetuple())
-
+                last_reading_time_seconds=now_seconds
+                
                 # update time and date
                 self.displayDateaAdnTime(now)
                 
@@ -399,7 +401,6 @@ class AirQualityApp(Frame):
                     # last reading is now!
                     last_reading_time_seconds = now_seconds
 
-                    # endif data reading
                 #------------------------------------------------------
                 # Update all sensor values beside dust
                 elif (self.sensorMonitoring):
