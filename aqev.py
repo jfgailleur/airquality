@@ -11,7 +11,10 @@ import os
 import time
 from ISStreamer.Streamer import Streamer
 import atexit
+# date and time
 import datetime
+from pytz import timezone # sudo pip install pytz
+
 
 # graphical user interface libraries
 from tkinter import *
@@ -31,7 +34,7 @@ BUCKET_KEY_AQ = "20070308-EV"
 # intial state access key for jgailleur@hotmail.com
 ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
 
-stream_online = True # stream online to Initial State or not
+stream_online = False # stream online to Initial State or not
 
 
 # DEBUG MODE
@@ -60,6 +63,14 @@ class AirQualityApp(Frame):
         self.dust_sensor = grove_sensor_oo_lib.DustSensor(2, AirQualityApp.SECONDS_BETWEEN_READS) #Dust sensor D2
         self.temp_hum_sensor = grove_sensor_oo_lib.TempAndHumSensor(4) # Temperatures and humidity on port D4
 
+        self.air_quality_sensor_value=0
+        self.air_type_string=""
+        self.gas_MQ2_density=0
+        self.co2_concentration=0
+        self.dust_concentration=0
+        self.inside_temperature=0
+        self.inside_humidity=0
+
         # DATA STREAM CREATION FOR SENDING DATA TO INITIAL STATE
         # open the streamer
         if (stream_online):
@@ -73,29 +84,15 @@ class AirQualityApp(Frame):
     # -----------------------------------
     # ALL SENSORS DATA READING
     # -----------------------------------
-    def updateGUITempAndHumSensors(self):
-        #
-        pass
-
-
-    def readTempAndHumSensors(self):
-        self.temp_hum_sensor.readTempAndHum()
-        self.inside_temperature = self.temp_hum_sensor.getLatestReadTemp()
-        self.inside_humidity = self.temp_hum_sensor.getLatestReadHum()
-        if (DEBUG):
-            print("Inside temperature: "+str(self.inside_temperature))
-            print("Inside humidity: "+str(self.inside_humidity))
-
-
     def updateGUIGasSensors(self):
         # harmful gas
-        self.airQualityLabelValue.set(str(self.air_quality_sensor_value)+" ("+ str(self.air_type_string) +")")
+        self.airQualityLabelValue.set("%d" %(self.air_quality_sensor_value) +" ("+ self.air_type_string +")")
         if (DEBUG):
-            print("GUI Harmful gas: "+airquality_text)
+            print("GUI Harmful gas: %d" %(self.air_quality_sensor_value))
         # combustible gas
         self.gasMQ2Value.set(str(self.gas_MQ2_density))
         if (DEBUG):
-            print("GUI Combustible gases" +str(gas_MQ2_density))
+            print("GUI Combustible gases" +str(self.gas_MQ2_density))
         # CO2
         self.co2Value.set(str(self.co2_concentration))
         if (DEBUG):
@@ -118,11 +115,10 @@ class AirQualityApp(Frame):
             print("Combustible gases, 200-10000, %d" %(self.gas_MQ2_density))
             print("Carbon dioxide (CO2): %d ppm" %(self.co2_concentration))
             
-
     # -----------------------------------
     def updateGUIDustSensors(self):
         if (self.dust_concentration>0):
-            self.dustValue.set(str(self.dust_concentration))
+            self.dustValue.set("%d" %(self.dust_concentration))
             print("Dust particule concentration: %d" %(self.dust_concentration))
         else:
             # no GUI update, keep the previous value displayed
@@ -139,7 +135,6 @@ class AirQualityApp(Frame):
     def readDustSensors(self):
 
         self.dust_concentration = self.dust_sensor.readConcentration()
-#        self.dust_concentration = int(round(self.dust_sensor.readConcentration()))
 
         # renit if reading issues for 10 consecutive time            
         if self.dust_sensor.getNbConsecutiveNoReading() > 10:
@@ -147,20 +142,42 @@ class AirQualityApp(Frame):
             self.dustValue.set("Problème de lecture")
             # reinit
             self.dust_sensor = grove_sensor_oo_lib.DustSensor(2, AirQualityApp.SECONDS_BETWEEN_READS)
-        
+
+    def updateGUITempAndHumSensors(self):
+        pass
+        # print("Inside temperature: "+str(self.inside_temperature))
+        # print("Inside humidity: "+str(self.inside_humidity))
+
+
+
+    def readTempAndHumSensors(self):
+        temp =0
+        hum =0
+#        [temp,hum] = grovepi.dht(4, 1)
+        self.inside_temperature = temp
+        self.inside_humidity = hum
+#        self.temp_hum_sensor.readTempAndHum()
+#        self.inside_temperature = self.temp_hum_sensor.getLatestReadTemp()
+#        self.inside_humidity = self.temp_hum_sensor.getLatestReadHum()
+        if (DEBUG):
+            print("Inside temperature: "+str(self.inside_temperature))
+            print("Inside humidity: "+str(self.inside_humidity))
+
+   
     # -----------------------------------
     def readSubSetSensorsAndUpdateGUI(self):
         self.readGasSensors(False) # no printing in console
         self.updateGUIGasSensors()
 
-       
+    def readTempAndHumSensorsAndUpdateGUI(self):
+        self.readTempAndHumSensors()
+        self.updateGUITempAndHumSensors()
+        
+
     # -----------------------------------
     # ALL SENSORS DATA READING & Streaming
     # -----------------------------------
     def readSensorsAndUpdateGUIAndStream(self):
-
-        self.readTempAndHumSensors()
-        self.updateGUITempAndHumSensors()
 
         self.readGasSensors(True) # print value in console
         self.updateGUIGasSensors()
@@ -203,6 +220,15 @@ class AirQualityApp(Frame):
         strtimenow = "{:02d}:{:02d}:{:02d}".format(timenow.hour, timenow.minute, timenow.second)
         self.informationLabelValue1.set(strtimenow)
 
+    def displayNowDateAndTime(self):
+        # format reference strftime.org
+        fmtTime = " %-H:%M:%S  "
+        fmtDate = " %A, %B %-d, %Y"
+        now_time = datetime.datetime.now(timezone('US/Eastern'))
+        self.informationLabelValueTime.set(now_time.strftime(fmtTime))
+        self.informationLabelValueDate.set(now_time.strftime(fmtDate))
+
+
     # -----------------------------------
     # CREATION OF THE DESKTOP GUI 
     # -----------------------------------
@@ -227,19 +253,28 @@ class AirQualityApp(Frame):
         #set up the widgets
         row_value=0
 
-        self.informationLabelValue1=StringVar()
-        Label(self, textvariable=self.informationLabelValue1, font = self.myFont).grid(row=row_value,sticky=W)
-        self.informationLabelValue1.set("heure")
+        # label hour
+        self.informationLabelValueTime=StringVar()
+        Label(self, textvariable=self.informationLabelValueTime, font = self.myLargeFont).grid(row=row_value,column=0,sticky=W)
+        self.informationLabelValueTime.set("heure")
 
+        # Label top right (0, 1)
         self.informationLabelValue3=StringVar()
         Label(self, textvariable=self.informationLabelValue3, font = self.myFont).grid(row=row_value, column=1, sticky=W)
         self.informationLabelValue3.set(" ")
 
         row_value = row_value +1
+        self.informationLabelValueDate=StringVar()
+        Label(self, textvariable=self.informationLabelValueDate, font = self.myFont).grid(row=row_value,column=0,sticky=W)
+        self.informationLabelValueDate.set("date")
+
+
 #        Label(self, text="Date & heure de la dernière mesure:", font = self.myFont).grid(row=row_value, column=0, sticky=W)
         self.informationLabelValue2=StringVar()
 #        Label(self, textvariable=self.informationLabelValue2, font = self.myFont).grid(row=row_value, column=1, sticky=W)
 #        self.informationLabelValue2.set(" aucune")
+
+
 
         row_value = row_value +1
         Label(self, text="(c) Emma Gailleur & Victoria Lapointe", font = self.mySmallFont).grid(row=row_value, column=0, sticky=W)
@@ -295,7 +330,7 @@ class AirQualityApp(Frame):
 #        Button(self, textvariable =self.startButtonLabel, font = self.myFont, command = lambda: self.startMonitoringCallback(), height = 2, width =8 ).grid(row=row_value, column=0, sticky=W+S)
 #        self.startButtonLabel.set("Démarrer")
 
-        Button(self, text = "Quitter", font = self.myFont, command = lambda: self.quitCallback(), height = 2, width =8 ).grid(row=row_value, column=1, sticky=W+S)
+        Button(self, text = "Quitter", font = self.myFont, command = lambda: self.quitCallback(), height = 2, width =8 ).grid(row=row_value, column=1, sticky=E+S)
 
 
         '''
@@ -330,28 +365,6 @@ class AirQualityApp(Frame):
 
 
     # -----------------------------------
-    # CALLBACK FOR START BUTTON (NOT USED ANNYMORE)
-    # -----------------------------------
-    def startMonitoringCallback(self):
-        if (self.sensorMonitoring == True):
-            # stop the capture
-            self.sensorMonitoring = False
-            self.startButtonLabel.set("Démarrer")
-            self.informationLabelValue1.set("Appuyer sur <Démarrer>")
-            #self.informationLabelValue2.set(" ")
-            self.informationLabelValue3.set(" ")
-
-        else:
-            # reset
-            self.reset()
-
-            # start the capture
-            self.sensorMonitoring = True
-            self.startButtonLabel.set("Arrêter")
-            self.informationLabelValue1.set("Mesure de la Qualité de l'air")
-            
-
-    # -----------------------------------
     # CALLBACK FOR QUIT BUTTON
     # -----------------------------------
     def quitCallback(self):
@@ -363,9 +376,13 @@ class AirQualityApp(Frame):
     # -----------------------------------
     def mainLoop(self):
         
+        self.readDustSensors()
+        self.updateGUIDustSensorsWaiting()
+
         now = datetime.datetime.utcnow()
         now_seconds = time.mktime(now.timetuple())
         last_reading_time_seconds=now_seconds
+
 
         # main inifite loop until quit        
         while (self.infiniteLoop):
@@ -376,7 +393,7 @@ class AirQualityApp(Frame):
                 now_seconds = time.mktime(now.timetuple())
                 
                 # update time and date
-                self.displayDateaAdnTime(now)
+                self.displayNowDateAndTime()
                 
                 # main loop for TKinter
                 self.master.update_idletasks()
@@ -390,7 +407,7 @@ class AirQualityApp(Frame):
                 #------------------------------------------------------
                 # MEASUREMENT
                 # do we read data this loop?
-                if (self.sensorMonitoring)  and (now_seconds >= last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS):
+                if (self.sensorMonitoring)  and (now_seconds >= (last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS)):
 
                     print ("---------------------")
                     print("Now (utc): "+str(now))
@@ -399,8 +416,6 @@ class AirQualityApp(Frame):
                     # --- read the sensors, upate the GUI send to Internet and print in the terminal ---
                     self.readSensorsAndUpdateGUIAndStream()
                     
-#                    self.informationLabelValue2.set(str(now))
-
                     # last reading is now!
                     last_reading_time_seconds = now_seconds
 
@@ -409,15 +424,17 @@ class AirQualityApp(Frame):
                 elif (self.sensorMonitoring):
                     self.readSubSetSensorsAndUpdateGUI()
 
-                    # next capture
+                    # next particules capture
                     self.informationLabelValue3.set("Particules maj dans %d s" %(round(last_reading_time_seconds + AirQualityApp.SECONDS_BETWEEN_READS - now_seconds)))    
-                    
+
+                    self.readTempAndHumSensorsAndUpdateGUI()
+                   
                 # main loop for TKinter
                 self.master.update_idletasks()
                 self.master.update()
 
                 # free some processor time
-                time.sleep(.5)
+                time.sleep(.4)
 
             # endtry
 

@@ -13,26 +13,6 @@ The MIT License (MIT)
 
 Copyright (c) 2017 Emma Gailleur
 
-GrovePi for the Raspberry Pi: an open source platform for connecting Grove Sensors to the Raspberry Pi.
-Copyright (C) 2015  Dexter Industries
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
 '''
 
 
@@ -65,9 +45,13 @@ def isFloat(string):
 #  0 - DHT11 - blue one - comes with the GrovePi+ Starter Kit
 #  1 - DHT22 - white one, aka DHT Pro or AM2302
 #  2 - DHT21 - black one, aka AM2301
-DHT_SENSOR_TYPE = 1
+#DHT_SENSOR_TYPE = 1
 # Connect the DHT sensor to one of the digital pins (i.e. 2, 3, 4, 7, or 8)
-DHT_SENSOR_PIN = 4
+#DHT_SENSOR_PIN = 4
+
+#------------ Temp and humidity sensor
+dht_sensor_port = 4		# Connect the DHt sensor to digital port 4
+dht_sensor_type = 1             # change this depending on your sensor type - see header comment
 
 # Initial State settings
 BUCKET_NAME_AQ = "Air Quality Monitoring"
@@ -79,12 +63,9 @@ BUCKET_KEY_AQ = "kitchen-ids-170219"
 ACCESS_KEY = "0Vcs79QnlzNa7tO7Bn1sJ0LHgzyuTJaj"
 
 # Set the time between sensor reads
-SECONDS_BETWEEN_READS = 30
-INIT_SECONDS_WAIT = 120 # number of seconds to wait for sensors to warm up
+SECONDS_BETWEEN_READS = 15
+INIT_SECONDS_WAIT = 30 # number of seconds to wait for sensors to warm up
 
-#------------ Temp and humidity sensor
-dht_sensor_port = 4		# Connect the DHt sensor to digital port 4
-dht_sensor_type = 0             # change this depending on your sensor type - see header comment
 
 
 #---------- AIR QUALITY SENSOR -----------------
@@ -187,7 +168,7 @@ while True:
         hum = 0
         [temp,hum] = grovepi.dht(dht_sensor_port,dht_sensor_type)
         #adjustement for this not quality sensor
-        temp = temp-1
+#        temp = temp-1
 
         # stream data after initialization
         if (init_few_seconds >= INIT_SECONDS_WAIT):            

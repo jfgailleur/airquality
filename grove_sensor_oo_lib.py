@@ -29,6 +29,9 @@ MAX_PERCENT_ERROR = 3
 ## return new_value if value between previous_value+(previous_value*max_percent_error)
 # or return new_value if previous_value == 0 (for initialization)
 def removeSpike(previous_value, new_value, max_percent_error):
+    return new_value
+
+'''
     if (DEBUG):
         print ("GroveSensor::removeSpike")
     if (previous_value == 0):
@@ -39,17 +42,13 @@ def removeSpike(previous_value, new_value, max_percent_error):
          return previous_value
     else:
          return new_value
+'''
 
-#-------------------
-class GroveSensor:
-#     port = -1
-#     type =
-    pass
 
 
 #-------------------
 #---------- TEMPERATURE and HUMIDITY SENSOR -----------------
-class TempAndHumSensor(GroveSensor):
+class TempAndHumSensor():
 
     # --------- User Settings ---------
     # The DHT_SENSOR_TYPE below may need to be changed depending on which DHT sensor you have:
@@ -60,16 +59,21 @@ class TempAndHumSensor(GroveSensor):
 
     # init
     def __init__(self, port):
+        grovepi.pinMode(port,"INPUT")
         self.dht_sensor_port = port # port
         self.last_value =0 # last value set to 0
         self.DHT_SENSOR_TYPE = 1 # DHT PRO (white one)
+        self.temp = 0
+        self.hum = 0
 
     def readTempAndHum(self):
 
         # get temperature and humidity
         self.temp = 0
         self.hum = 0
-        [self.temp,self.hum] = grovepi.dht(self.dht_sensor_port, self.DHT_SENSOR_TYPE)
+        [temp, hum] = grovepi.dht(self.dht_sensor_port, self.DHT_SENSOR_TYPE)
+        self.temp = temp
+        self.hum = hum
 
     def getLatestReadTemp(self):
         return self.temp
@@ -80,7 +84,7 @@ class TempAndHumSensor(GroveSensor):
 
 #-------------------
 #---------- CO2 SENSOR -----------------
-class CO2SensorSerial(GroveSensor):
+class CO2SensorSerial():
 
     # init
     def __init__(self):
@@ -122,7 +126,7 @@ class CO2SensorSerial(GroveSensor):
 
 
 #-------------------          
-class DustSensor(GroveSensor):
+class DustSensor():
 #    lowpulseoccupancy=-1
 #    new_val=-1
 #    dust_concentration=0
@@ -198,14 +202,20 @@ class DustSensor(GroveSensor):
 # NOTE: # Wait 2 minutes for the sensor to heat-up
 # Connect the Grove Air Quality Sensor to analog port A0
 # SIG,NC,VCC,GND
-class AirQualitySensor(GroveSensor):
+class AirQualitySensor():
 #    air_quality_sensor_value = 0 # air quality sensor
 #    last_value = 0
 
     def __init__(self, port):
+        if (DEBUG):
+            print ("--- AirQualitySensor __init__")
+            print ("port %d" %(port))
+
         self.port=port
         grovepi.pinMode(self.port,"INPUT")
-        self.last_value =0
+        self.last_value=0
+        if (DEBUG):
+            print ("self.port %d" %(self.port))
 
     def readAirQuality(self):
         air_quality_sensor_value = self.last_value
@@ -213,8 +223,11 @@ class AirQualitySensor(GroveSensor):
         try:
             # Get air quality sensorS value
             air_quality_sensor_value = grovepi.analogRead(self.port)
+            if (DEBUG):
+                print ("self.port %d" %(self.port))
+                print ("air_quality_sensor_value %d" %(air_quality_sensor_value))
             #remove spike
-            air_quality_sensor_value = removeSpike(self.last_value, air_quality_sensor_value, MAX_PERCENT_ERROR)
+#            air_quality_sensor_value = removeSpike(self.last_value, air_quality_sensor_value, MAX_PERCENT_ERROR)
             self.last_value = air_quality_sensor_value
 
             return (air_quality_sensor_value)
@@ -243,7 +256,7 @@ class AirQualitySensor(GroveSensor):
 # 02 - Oxygen
 # The sensitivity can be adjusted by the onboard potentiometer
 # http://www.seeedstudio.com/wiki/Grove_-_Gas_Sensor
-class GasSensor(GroveSensor):
+class GasSensor():
 
     def __init__(self, port):
         if (DEBUG):
@@ -276,7 +289,7 @@ class GasSensor(GroveSensor):
                 print ("gas_density %d" %(gas_density))
 
             # remove spike
-            gas_density = removeSpike(self.last_value, gas_density, MAX_PERCENT_ERROR)
+#            gas_density = removeSpike(self.last_value, gas_density, MAX_PERCENT_ERROR)
             self.last_value = gas_density
 
             if (DEBUG):
